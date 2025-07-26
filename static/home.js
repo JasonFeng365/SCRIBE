@@ -235,7 +235,6 @@ const vue = createApp({
 			fetch('/generatePublicManifest')
 				.then(response => response.json())
 				.then(async data => {
-
 					const jsonString = JSON.stringify(data, null, '\t');
 					const blob = new Blob([jsonString], { type: 'application/json' });
 
@@ -247,39 +246,7 @@ const vue = createApp({
 					downloadLink.click();
 					document.body.removeChild(downloadLink);
 
-					URL.revokeObjectURL(downloadLink.href); // Release the object URL
-					// try {
-					// 	// Convert the JavaScript object to a JSON string
-					// 	const jsonString = JSON.stringify(data, null, 2); // null and 2 for pretty-printing
-
-					// 	// Create a Blob from the JSON string
-					// 	const blob = new Blob([jsonString], { type: 'application/json' });
-
-					// 	// Prompt the user to choose a save location and file name
-					// 	const fileHandle = await window.showSaveFilePicker({
-					// 	suggestedName: "manifest.json",
-					// 	types: [{
-					// 		description: 'JSON Files',
-					// 		accept: {
-					// 		'application/json': ['.json'],
-					// 		},
-					// 	}],
-					// 	});
-
-					// 	// Create a WritableStream to write the Blob content to the chosen file
-					// 	const writableStream = await fileHandle.createWritable();
-					// 	await writableStream.write(blob);
-					// 	await writableStream.close();
-
-					// 	console.log('JSON file saved successfully!');
-
-					// } catch (error) {
-					// 	if (error.name === 'AbortError') {
-					// 	console.log('File save operation cancelled by the user.');
-					// 	} else {
-					// 	console.error('Error saving JSON file:', error);
-					// 	}
-					// }
+					URL.revokeObjectURL(downloadLink.href);
 				})
 				.catch(error => print('Error fetching problems:', error));
 		}

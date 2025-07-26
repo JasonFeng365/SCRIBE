@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>SCRIBE</title>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+
+<div id="app" class="container py-5">
+	<h1 class="mb-4">SCRIBE</h1>
+	<h2 class="mb-4">Specialty Challenge Repository In-Browser Editor</h2>
+
+	<div class="mb-3">
+		<button class="btn btn-primary" @click="getManifest()">Generate Public Manifest</button>
+	</div>
+	
+	<div class="modal fade" id="hackerrankModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content" v-if="hrItem != null">
+				<div class="modal-header">
+					<h1 class="modal-title fs-5" id="exampleModalLabel">SeleneHR Integration</h1>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+
+				<div v-if="hrItem.hasHRInfo">
+					<div class="modal-body" v-if="hrInfo.initialized">
+						<p><b>{{hrItem.name}}</b> is integrated with HackerRank!</p>
+
+						<div class="mb-2">
+							<label class="form-label">Problem ID</label>
+							<input type="number" class="form-control"
+								v-model.number="hrInfo.id">
+						</div>
+						<hr>
+
+						<!-- // name, difficulty, preview, samples, sampleDataMap -->
+						<div class="mb-2">
+							<label class="form-label">Name:</label>
+							<input type="text" class="form-control" v-model="hrInfo.name">
+						</div>
+						<div class="mb-2">
+							<label class="form-label">Difficulty:</label>
+							<select class="form-select" v-model="hrInfo.difficultyString">
+								<option>Easy</option>
+								<option>Medium</option>
+								<option>Hard</option>
+								<option>Advanced</option>
+								<option>Expert</option>
+							</select>
+						</div>
+						<div class="mb-2">
+						<label class="form-label">Preview:</label>
+						<textarea class="form-control" v-model="hrInfo.preview" rows="3"></textarea>
+					</div>
+
+
+
+
+						
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-success" @click="saveHRInfo()">Save</button>
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+					</div>
+				</div>
+
+				<div v-if="!hrItem.hasHRInfo">
+					<div class="modal-body">
+						<p><b>{{hrItem.name}}</b> isn't currently integrated with HackerRank.</p>
+						<div class="input-group mb-3">
+							<button class="btn btn-outline-secondary" type="button" @click="setupNewIntegration()">Integrate with existing problem</button>
+							<input type="number" class="form-control" placeholder="Problem ID" v-model="hrInfo.id">
+						</div>
+						<div class="input-group mb-3">
+							<button class="btn btn-outline-secondary" type="button" @click="setupNewIntegration()">Generate new integration</button>
+						</div>
+
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+					</div>
+				</div>
+				
+			</div>
+		</div>
+	</div>
+
+	<!-- Filters -->
+	<div class="mb-3">
+		<div class="d-flex align-items-center mt-2">
+			<div class="form-check form-switch me-3 mb-0">
+				<input class="form-check-input" type="checkbox" id="nameToggle" v-model="nameFilterEditingEnabled">
+				<label class="form-check-label" for="nameToggle">Filter by name</label>
+			</div>
+			<div v-if="nameFilterEditingEnabled" class="form-check form-switch mb-0">
+				<input class="form-check-input" type="checkbox" id="nameValueToggle" v-model="nameFilterValue">
+				<label class="form-check-label" for="nameValueToggle"></label>
+				<span v-if="nameFilterValue" class="badge bg-success ms-2">Include</span>
+				<span v-if="!nameFilterValue" class="badge bg-success ms-2">Exclude</span>
+			</div>
+		</div>
+		<input type="text" class="form-control" id="nameFilter" v-model="nameFilter" :disabled="!nameFilterEditingEnabled">
+
+
+		
+		<div class="d-flex align-items-center mt-2">
+			<div class="form-check form-switch me-3 mb-0">
+				<input class="form-check-input" type="checkbox" id="editToggle" v-model="tagsFilterEditingEnabled">
+				<label class="form-check-label" for="editToggle">Filter by tags</label>
+			</div>
+			<div v-if="tagsFilterEditingEnabled" class="form-check form-switch mb-0">
+				<input class="form-check-input" type="checkbox" id="tagsValueToggle" v-model="tagsFilterValue">
+				<label class="form-check-label" for="tagsValueToggle"></label>
+				<span v-if="tagsFilterValue" class="badge bg-success ms-2">Includes all</span>
+				<span v-if="!tagsFilterValue" class="badge bg-success ms-2">Excludes all</span>
+			</div>
+		</div>
+		<input type="text" class="form-control" id="tagsFilter" v-model="tagsFilter" :disabled="!tagsFilterEditingEnabled">
+
+
+
+		<div class="d-flex align-items-center mt-2">
+			<div class="form-check form-switch me-3 mb-0">
+				<input class="form-check-input" type="checkbox" id="hasGenToggle" v-model="hasGenFilterEnabled">
+				<label class="form-check-label" for="hasGenToggle">Filter by hasGen</label>
+			</div>
+			<div v-if="hasGenFilterEnabled" class="form-check form-switch mb-0">
+				<input class="form-check-input" type="checkbox" id="hasGenValueToggle" v-model="hasGenFilterValue">
+				<label class="form-check-label" for="hasGenValueToggle"></label>
+				<span v-if="hasGenFilterValue" class="badge bg-success ms-2">hasHRInfo = true</span>
+				<span v-if="!hasGenFilterValue" class="badge bg-success ms-2">hasHRInfo = false</span>
+			</div>
+		</div>
+
+		<div class="d-flex align-items-center mt-2">
+			<div class="form-check form-switch me-3 mb-0">
+				<input class="form-check-input" type="checkbox" id="hasHRInfoToggle" v-model="hasHRInfoFilterEnabled">
+				<label class="form-check-label" for="hasHRInfoToggle">Filter by hasHRInfo</label>
+			</div>
+			<div v-if="hasHRInfoFilterEnabled" class="form-check form-switch mb-0">
+				<input class="form-check-input" type="checkbox" id="hasHRInfoValueToggle" v-model="hasHRInfoFilterValue">
+				<label class="form-check-label" for="hasHRInfoValueToggle"></label>
+				<span v-if="hasHRInfoFilterValue" class="badge bg-success ms-2">hasHRInfo = true</span>
+				<span v-if="!hasHRInfoFilterValue" class="badge bg-success ms-2">hasHRInfo = false</span>
+			</div>
+		</div>
+
+		<div class="d-flex align-items-center mt-2">
+			<div class="form-check form-switch me-3 mb-0">
+				<input class="form-check-input" type="checkbox" id="doneToggle" v-model="doneFilterEnabled">
+				<label class="form-check-label" for="doneToggle">Filter by Done</label>
+			</div>
+			<div v-if="doneFilterEnabled" class="form-check form-switch mb-0">
+				<input class="form-check-input" type="checkbox" id="doneValueToggle" v-model="doneFilterValue">
+				<label class="form-check-label" for="doneValueToggle"></label>
+				<span v-if="doneFilterValue" class="badge bg-success ms-2">done = true</span>
+				<span v-if="!doneFilterValue" class="badge bg-success ms-2">done = false</span>
+			</div>
+		</div>
+	</div>
+
+	<!-- Sorting -->
+	<div class="mb-3 d-flex align-items-center">
+		<button 
+			class="btn me-2"
+			:class="sortBy === 'path' ? 'btn-primary' : 'btn-outline-primary'"
+			@click="sortBy = 'path'; sortAsc = true"
+		>
+			Sort by Path
+		</button>
+		<button 
+			class="btn me-2"
+			:class="sortBy === 'name' ? 'btn-primary' : 'btn-outline-primary'"
+			@click="sortBy = 'name'; sortAsc = true"
+		>
+			Sort by Name
+		</button>
+		<button 
+			class="btn me-2"
+			:class="sortBy === 'difficulty' ? 'btn-primary' : 'btn-outline-primary'"
+			@click="sortBy = 'difficulty'; sortAsc = true"
+		>
+			Sort by Difficulty
+		</button>
+		<button 
+			class="btn me-2"
+			:class="sortBy === 'creation' ? 'btn-primary' : 'btn-outline-primary'"
+			@click="sortBy = 'creation'; sortAsc = true"
+		>
+			Sort by Creation
+		</button>
+		<button class="btn btn-outline-secondary" @click="sortAsc = !sortAsc">
+			<span v-if="sortAsc">&#8593; Ascending</span>
+			<span v-else>&#8595; Descending</span>
+		</button>
+	</div>
+
+	<div class="mb-3">
+		<strong>Items found:</strong> {{ filterItems().length }}
+	</div>
+	
+	
+	<!-- Content -->
+	<ul class="list-group">
+		<li v-for="item in filterItems()" :key="item.id" class="list-group-item d-flex justify-content-between align-items-center">
+			<div class="w-100">
+				<div @click="item.expanded = !item.expanded; lastActive = item;" style="cursor:pointer;">
+					{{ getPathWithoutName(item) }}/<b>{{ item.name }}</b>
+					<span v-if="item.tags.includes('dream')" class="badge bg-light text-muted ms-2">💤 {{item.creation}}</span>
+					<span v-if="sortBy === 'difficulty'" class="badge bg-info ms-2">{{ item.difficulty }}</span>
+					<span v-if="sortBy === 'creation' && !item.tags.includes('dream')" class="badge bg-info ms-2">{{ item.creation }}</span>
+					<span v-if="item.hasUnsavedChanges" class="badge bg-warning ms-2">Unsaved</span>
+					<span v-if="item.status === 'Done'" class="badge bg-success ms-2">Done</span>
+					<span v-if="item.hasGen" class="badge bg-primary ms-2">hasGen</span>
+					<span v-if="item.hasHRInfo" class="badge bg-secondary ms-2">hasHRInfo</span>
+				</div>
+				<div v-if="item.expanded" class="mt-2 ms-3 border p-2 rounded" style="transition: all 0.3s ease-in-out;">
+					<div class="mb-2">
+						<label class="form-label">Creation Timestamp:</label>
+						<input type="text" class="form-control" @click="lastActive = item" v-model="item.creation" @input="item.hasUnsavedChanges = true">
+					</div>
+					<div class="mb-2">
+						<label class="form-label">Description:</label>
+						<textarea class="form-control" @click="lastActive = item" v-model="item.description" rows="3" @input="item.hasUnsavedChanges = true"></textarea>
+					</div>
+					
+					<label class="form-label">Link:</label>
+					<div class="input-group mb-2">
+						<input type="text" class="form-control" @click="lastActive = item" v-model="item.link" @input="item.hasUnsavedChanges = true">
+						<button v-if="item.link" class="btn btn-outline-secondary" type="button" @click="openLink(item.link)">Open in new tab</button>
+					</div>
+					<!-- <div class="mb-2">
+						<label class="form-label">Link:</label>
+						<input type="text" class="form-control" @click="lastActive = item" v-model="item.link" @input="item.hasUnsavedChanges = true">
+					</div> -->
+					<div class="mb-2">
+						<label class="form-label">Difficulty:</label>
+						<input type="number" class="form-control" @click="lastActive = item" 
+							v-model.number="item.difficulty" @change="item.hasUnsavedChanges = true">
+					</div>
+					<div class="mb-2">
+						<label class="form-label">Status:</label>
+						<select class="form-select" @click="lastActive = item" v-model="item.status" @change="item.hasUnsavedChanges = true">
+							<option>Idea</option>
+							<option>Writing statement</option>
+							<option>Writing solution</option>
+							<option>Writing generator</option>
+							<option>Done</option>
+						</select>
+					</div>
+					<div class="mb-2 form-check form-switch">
+						<input class="form-check-input" type="checkbox" id="hasGenToggle_item" v-model="item.hasGen" @change="item.hasUnsavedChanges = true; lastActive = item;">
+						<label class="form-check-label" for="hasGenToggle_item">Has generator</label>
+					</div>
+					<div class="mb-2 form-check form-switch">
+						<input class="form-check-input" type="checkbox" id="hasHRInfoToggle_item" v-model="item.hasHRInfo" disabled>
+						<label class="form-check-label" for="hasHRInfoToggle_item">Has SeleneHR integration</label>
+						<button class="btn btn-success btn-sm ms-2" @click="openHRInfoEditor(item)" data-bs-toggle="modal" data-bs-target="#hackerrankModal">Edit HackerRank Info</button>
+
+					</div>
+					<div class="mb-2">
+						<label class="form-label">Tags:</label>
+						<input type="text" class="form-control" v-model="item.tagsText" @input="item.hasUnsavedChanges = true" @click="lastActive = item"
+							@change="setItemTags(item)">
+							
+					</div>
+					<div v-if="item.hasUnsavedChanges" class="mt-3">
+						<button class="btn btn-success btn-sm" @click="saveChanges(item)">Save Changes</button>
+						<button class="btn btn-warning btn-sm ms-2" @click="revertChanges(item)">Revert Changes</button>
+					</div>
+				</div>
+			</div>
+		</li>
+	</ul>
+
+</div>
+
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<script src="/static/home.js"></script>
+</body>
+</html>

@@ -1,0 +1,152 @@
+from flask import Flask
+from flask import render_template, send_from_directory, request, jsonify
+import problems
+import os
+import json
+from config import Config
+import subprocess
+
+app = Flask(__name__)
+
+
+def getJson(path):
+	with open(path, 'r') as file:
+		return json.load(file)
+	return {}
+
+
+@app.route('/')
+def home():
+	return 'Hello, Flask!'
+
+@app.route('/home')
+def serve_home():
+	return send_from_directory('static', 'home.html')
+
+@app.route('/problems')
+def get_problems():
+	return problems.parseProblemCatalog(Config().defaultPath)
+
+@app.route('/save/<path:problem_path>', methods=['POST'])
+def save_problem(problem_path):
+	try:
+		data = request.json
+		full_path = os.path.join(Config().defaultPath, problem_path, "scribe.json")
+		if not os.path.exists(full_path):
+			print(f"Path not found in save_problem: {problem_path}")
+			return {}, 404
+
+		res = {
+			"tags": data["tags"],
+			"difficulty": data["difficulty"],
+			"status": data["status"],
+			"hasGen": data["hasGen"],
+			"description": data["description"],
+			"creation": data["creation"],
+			"link": data["link"],
+		}
+		
+		with open(full_path, 'w') as f:
+			json.dump(res, f, indent='\t')
+
+		
+		return {}, 200
+	except Exception as e:
+		print(f"Error saving problem: {e}")
+		return {}, 500
+
+@app.post('/hr/newIntegration/<path:problem_path>')
+def generate_hr_new_integration(problem_path):
+	data = request.json
+	cmd = ["hr", "init", problem_path]
+	if "id" in data:
+		id = data["id"]
+		print(f"Generating new HR integration for ID: {id}")
+		cmd.append(str(id))
+	else:
+		print("Generating new HR integration without a specific ID")
+
+	res = subprocess.call(cmd, cwd=Config().defaultPath, shell=True)
+	print(res)
+
+	return {}, 200
+
+
+@app.route('/hr/setExtraInfo/<path:problem_path>', methods=['POST'])
+def setExtraInfo(problem_path):
+	try:
+		data = request.json
+		full_path = os.path.join(Config().defaultPath, problem_path, "hr_info", "hr_extra_info.json")
+		if not os.path.exists(full_path):
+				print(f"Path not found in setExtraInfo: {problem_path}")
+				return {"success": False}, 404
+		
+		res = {
+			"name": data["name"],
+			"difficulty": data["difficulty"],
+			"preview": data["preview"],
+			"tags": data["tags"],
+			"samples": data["samples"],
+			"sampleDataMap": data["sampleDataMap"]
+		}
+		
+		with open(full_path, 'w') as f:
+			json.dump(res, f, indent='\t')
+
+		
+		if "id" in data:
+			idPath = os.path.join(Config().defaultPath, problem_path, "hr_info", "hr_pid.txt")
+			with open(idPath, 'w') as f:
+				f.write(str(data["id"]))
+				f.flush()
+		else:
+			idPath = os.path.join(Config().defaultPath, problem_path, "hr_info", "hr_pid.txt")
+			if os.path.exists(idPath):
+				os.remove(idPath)
+		return {"success": True}, 200
+	except Exception as e:
+		print(f"Error in setExtraInfo: {e}")
+		return {"success": False}, 500
+
+
+@app.route('/hr/getExtraInfo/<path:problem_path>', methods=['GET'])
+def getExtraInfo(problem_path):
+	extraInfoPath = os.path.join(Config().defaultPath, problem_path, "hr_info", "hr_extra_info.json")
+	if not os.path.exists(extraInfoPath):
+		return {}, 404
+	
+	data = getJson(extraInfoPath)
+
+	idPath = os.path.join(Config().defaultPath, problem_path, "hr_info", "hr_pid.txt")
+	if os.path.exists(idPath):
+		with open(idPath, 'r') as f:
+			pid = int(f.readline().strip())
+			data["id"] = pid
+
+	return data, 200
+
+def getDir(path):
+	arr = path.split("/")
+	return "/".join(arr[:-1])
+
+@app.get("/generatePublicManifest")
+def generatePublicManifest():
+	ignoredPaths = set(Config().ignorePathsInManifest)
+	def filterPath(problem):
+		return getDir(problem["path"]) not in ignoredPaths
+
+	problems = list(filter(filterPath, get_problems()))
+	print(len(problems))
+	for p in problems:
+		del p["hasGen"]
+		del p["hasHRInfo"]
+		del p["status"]
+	return problems
+
+	
+
+
+
+if __name__ == '__main__':
+	print("http://localhost:212/home")
+	app.run(debug=True, port=212)

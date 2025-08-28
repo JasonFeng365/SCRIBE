@@ -4,6 +4,7 @@ import os
 class Config:
 	_instance = None
 	defaultPath: str
+	templatePath: str
 	cliEnabled: bool
 	ignorePathsInManifest: list[str]
 
@@ -23,4 +24,5 @@ class Config:
 			inst.defaultPath = str(data["defaultPath"])
 			inst.cliEnabled = bool(data["cliEnabled"])
 			inst.ignorePathsInManifest = list(data["ignorePathsInManifest"])
+			inst.templatePath = str(data["templatePath"])
 		return cls._instance

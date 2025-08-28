@@ -1,5 +1,6 @@
 {
 	"defaultPath": "C:/Users/jason/Documents/GitHub/ContestProblems",
 	"cliEnabled": true,
-	"ignorePathsInManifest": ["Others"]
+	"ignorePathsInManifest": ["Others"],
+	"templatePath": "C:/Users/jason/Documents/GitHub/ContestProblems/Template"
 }

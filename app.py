@@ -3,6 +3,7 @@ from flask import render_template, send_from_directory, request, jsonify
 import problems
 import os
 import json
+import shutil
 from config import Config
 import subprocess
 
@@ -134,16 +135,62 @@ def generatePublicManifest():
 	ignoredPaths = set(Config().ignorePathsInManifest)
 	def filterPath(problem):
 		return getDir(problem["path"]) not in ignoredPaths
+	
+	totalProblems = len(get_problems())
 
 	problems = list(filter(filterPath, get_problems()))
-	print(len(problems))
 	for p in problems:
 		del p["hasGen"]
 		del p["hasHRInfo"]
 		del p["status"]
-	return problems
+	return {
+		"totalProblems": totalProblems,
+		"problems": problems
+	}
 
-	
+@app.post("/newProblem")
+def newProblem():
+	try:
+		data = request.json
+		
+		full_path = os.path.join(Config().defaultPath, data["path"], data["name"])
+		if os.path.exists(full_path):
+			print(f"newProblem: Path {full_path} already exists!")
+			return {}, 404
+
+		shutil.copytree(Config().templatePath, full_path, False, None)
+		
+		# # Copy contents of templatePath to full_path
+		# for item in os.listdir(Config().templatePath):
+		# 	s = os.path.join(Config().templatePath, item)
+		# 	d = os.path.join(full_path, item)
+		# 	if os.path.isdir(s):
+		# 		shutil.copytree(s, d, False, None)
+		# 	else:
+		# 		shutil.copy2(s, d)
+
+
+
+		scribe_file_path = os.path.join(Config().defaultPath, data["path"], data["name"], "scribe.json")
+		res = {
+			"tags": data["tags"],
+			"difficulty": data["difficulty"],
+			"status": data["status"],
+			"hasGen": False,
+			"description": data["description"],
+			"creation": data["creation"],
+			"link": "" if "link" not in data else data["link"],
+		}
+		
+		with open(scribe_file_path, 'w') as f:
+			json.dump(res, f, indent='\t')
+
+		
+		return {}, 200
+	except Exception as e:
+		print(f"Error saving problem: {e}")
+		print(e)
+		return {}, 500
 
 
 

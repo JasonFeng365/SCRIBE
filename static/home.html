@@ -13,7 +13,9 @@
 	<h2 class="mb-4">Specialty Challenge Repository In-Browser Editor</h2>
 
 	<div class="mb-3">
-		<button class="btn btn-primary" @click="getManifest()">Generate Public Manifest</button>
+		<button class="btn btn-primary me-2" @click="getManifest()">Generate Public Manifest</button>
+		<button class="btn btn-success me-2" @click="initNewProblemModal()" 
+			data-bs-toggle="modal" data-bs-target="#createProblemModal">Create Problem</button>
 	</div>
 	
 	<div class="modal fade" id="hackerrankModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -55,10 +57,7 @@
 						<textarea class="form-control" v-model="hrInfo.preview" rows="3"></textarea>
 					</div>
 
-
-
-
-						
+					
 					</div>
 					<div class="modal-footer">
 						<button type="button" class="btn btn-success" @click="saveHRInfo()">Save</button>
@@ -81,6 +80,78 @@
 					<div class="modal-footer">
 						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
 					</div>
+				</div>
+				
+			</div>
+		</div>
+	</div>
+
+	<div class="modal fade" id="createProblemModal" tabindex="-1" aria-labelledby="createProblemModalLabel" aria-hidden="true" 
+		data-bs-backdrop="static" data-bs-keyboard="false">
+
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h1 class="modal-title fs-5" id="createProblemModalLabel">Create Problem</h1>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+
+				<div class="modal-body">
+					<div class="mb-2">
+						<label class="form-label">Name:</label>
+						<input type="text" class="form-control" v-model="newProblem.name">
+					</div>
+					<div class="mb-2">
+						<label class="form-label">Path:</label>
+						<input type="text" class="form-control" v-model="newProblem.path"
+							list="pathOptions"
+						>
+						<datalist id="pathOptions">
+							<option v-for="path in paths" :value="path"></option>
+						</datalist>
+
+						<hr>
+
+						<div class="mb-2">
+							<label class="form-label">Creation Timestamp:</label>
+							<input type="text" class="form-control" v-model="newProblem.creation">
+						</div>
+						<div class="mb-2">
+							<label class="form-label">Description:</label>
+							<textarea style="field-sizing: content;" class="form-control" v-model="newProblem.description"></textarea>
+						</div>
+						
+						<label class="form-label">Link:</label>
+						<div class="input-group mb-2">
+							<input type="text" class="form-control" v-model="newProblem.link">
+							<button v-if="newProblem.link" class="btn btn-outline-secondary" type="button" @click="openLink(newProblem.link)">
+								Open in new tab</button>
+						</div>
+						<div class="mb-2">
+							<label class="form-label">Difficulty:</label>
+							<input type="number" class="form-control" v-model.number="newProblem.difficulty">
+						</div>
+						<div class="mb-2">
+							<label class="form-label">Status:</label>
+							<select class="form-select" v-model="newProblem.status">
+								<option>Idea</option>
+								<option>Writing statement</option>
+								<option>Writing solution</option>
+								<option>Writing generator</option>
+								<option>Done</option>
+							</select>
+						</div>
+						<div class="mb-2">
+							<label class="form-label">Tags:</label>
+							<input type="text" class="form-control" v-model="newProblem.tagsText"
+								@change="setItemTags(newProblem)">
+								
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-success" @click="saveNewProblem()">Save</button>
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
 				</div>
 				
 			</div>
@@ -223,7 +294,7 @@
 					</div>
 					<div class="mb-2">
 						<label class="form-label">Description:</label>
-						<textarea class="form-control" @click="lastActive = item" v-model="item.description" rows="3" @input="item.hasUnsavedChanges = true"></textarea>
+						<textarea style="field-sizing: content;" class="form-control" @click="lastActive = item" v-model="item.description" @input="item.hasUnsavedChanges = true"></textarea>
 					</div>
 					
 					<label class="form-label">Link:</label>

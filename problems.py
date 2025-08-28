@@ -70,6 +70,8 @@ def parseProblemCatalog(path: str) -> list[dict]:
 		root = root.replace("\\", "/")
 		splitPath = root.split("/")
 
+		if splitPath[-1] == "Template": continue
+
 		dirData = {
 			"name": splitPath[-1],
 			"path": root[pathLength+1:],

@@ -7,6 +7,7 @@ const vue = createApp({
 		return {
 			vue: null,
 			items: [],
+			paths: new Set(),
 
 			nameFilter: "",
 			nameFilterEditingEnabled: true,
@@ -30,8 +31,9 @@ const vue = createApp({
 			hrItem: null,
 			// id, name, difficulty, preview, samples, sampleDataMap
 			hrInfo: {},
+			hrDifficultyStrings: ["Easy", "Medium", "Hard", "Advanced", "Expert"],
 
-			hrDifficultyStrings: ["Easy", "Medium", "Hard", "Advanced", "Expert"]
+			newProblem: {},
 		}
 	},
 	methods: {
@@ -249,11 +251,59 @@ const vue = createApp({
 					URL.revokeObjectURL(downloadLink.href);
 				})
 				.catch(error => print('Error fetching problems:', error));
+		},
+
+		initNewProblemModal() {
+			const date = new Date()
+			const year = date.getFullYear();
+			const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Months are 0-indexed
+			const day = date.getDate().toString().padStart(2, '0');
+			const timestamp = `${year}-${month}-${day}`;
+			
+			this.newProblem = {
+				name: "",
+				path: "Others",
+				creation: timestamp,
+				difficulty: 1,
+				status: "Idea",
+				tags: [],
+				tagsText: ""
+			}
+		},
+
+		saveNewProblem() {
+			const endpoint = "/newProblem"
+			fetch(endpoint, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(this.newProblem)
+			})
+				.then(response => {
+					if (response.ok) {
+						console.log("Created new problem successfully!")
+						
+						const newItem = JSON.parse(JSON.stringify(this.newProblem))
+						newItem.path += "/"+newItem.name
+						newItem.previousVersion = JSON.parse(JSON.stringify(newItem));
+						vue.items.push(newItem)
+
+						// vue.initNewProblemModal()
+					} else {
+						alert('Failed to save new problem!');
+					}
+				})
+				.catch(error => {
+					console.error('Error saving new problem:', error);
+					alert('Error saving new problem.');
+				});
 		}
 	},
 	mounted() {
 		this.vue = this
 		const vue = this
+		this.initNewProblemModal()
 		// https://stackoverflow.com/questions/4446987/overriding-controls-save-functionality-in-browser
 		document.addEventListener(
 			"keydown",
@@ -267,6 +317,7 @@ const vue = createApp({
 			false
 		);
 
+		vue.paths = new Set()
 		fetch('/problems')
 			.then(response => response.json())
 			.then(data => {
@@ -274,7 +325,11 @@ const vue = createApp({
 				this.items.forEach(item => {
 					item.tagsText = item.tags.join(", ")
 					item.previousVersion = JSON.parse(JSON.stringify(item));
+
+					vue.paths.add(vue.getPathWithoutName(item))
 				});
+				
+				console.log(vue.paths)
 			})
 			.catch(error => print('Error fetching problems:', error));
 	}

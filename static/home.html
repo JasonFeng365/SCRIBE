@@ -337,9 +337,10 @@
 							@change="setItemTags(item)">
 							
 					</div>
-					<div v-if="item.hasUnsavedChanges" class="mt-3">
-						<button class="btn btn-success btn-sm" @click="saveChanges(item)">Save Changes</button>
-						<button class="btn btn-warning btn-sm ms-2" @click="revertChanges(item)">Revert Changes</button>
+					<div class="mt-3">
+						<button class="btn btn-primary btn-sm ms-2" @click="openProblem(item)">Open in VSCode</button>
+						<button v-if="item.hasUnsavedChanges" class="btn btn-success btn-sm ms-2" @click="saveChanges(item)">Save Changes</button>
+						<button v-if="item.hasUnsavedChanges" class="btn btn-warning btn-sm ms-2" @click="revertChanges(item)">Revert Changes</button>
 					</div>
 				</div>
 			</div>

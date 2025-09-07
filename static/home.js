@@ -298,6 +298,27 @@ const vue = createApp({
 					console.error('Error saving new problem:', error);
 					alert('Error saving new problem.');
 				});
+		},
+		openProblem(item) {
+			const endpoint = "/open"
+			fetch(endpoint, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(item)
+			})
+				.then(response => {
+					if (response.ok) {
+						console.log("Opened problem successfully!")
+					} else {
+						alert('Failed to open problem!');
+					}
+				})
+				.catch(error => {
+					console.error('Error opening problem:', error);
+					alert('Error opening problem.');
+				});
 		}
 	},
 	mounted() {

@@ -192,6 +192,19 @@ def newProblem():
 		print(e)
 		return {}, 500
 
+@app.post("/open")
+def openProblem():
+	try:
+		data = request.json
+		full_path = os.path.join(Config().defaultPath, data["path"])
+
+		cmd = ["code", full_path]
+		subprocess.call(cmd, cwd=Config().defaultPath, shell=True)
+		return {}, 200
+	except Exception as e:
+		print(f"Error opening problem: {e}")
+		return {}, 500
+
 
 
 if __name__ == '__main__':

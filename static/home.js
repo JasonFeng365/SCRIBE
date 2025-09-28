@@ -319,6 +319,10 @@ const vue = createApp({
 					console.error('Error opening problem:', error);
 					alert('Error opening problem.');
 				});
+		},
+		openStatement(item) {
+			console.log(item.path)
+			this.openLink("statement/"+item.path)
 		}
 	},
 	mounted() {

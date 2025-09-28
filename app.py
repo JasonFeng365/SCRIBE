@@ -205,6 +205,32 @@ def openProblem():
 		print(f"Error opening problem: {e}")
 		return {}, 500
 
+@app.post("/openStatement")
+def openStatement():
+	try:
+		data = request.json
+		full_path = os.path.join(Config().defaultPath, data["path"], data["name"]+".pdf").replace("\\", "/")
+		print(full_path)
+
+
+		return {"path": full_path}, 200
+	except Exception as e:
+		print(f"Error opening problem: {e}")
+		return {}, 500
+
+@app.route('/statement/<path:problem_path>', methods=['GET'])
+def getPdf(problem_path):
+	if ".." in problem_path:
+		return "Forbidden", 403
+
+	path = problem_path
+	name = problem_path.split("/")[-1]+".pdf"
+	file_path = os.path.join(Config().defaultPath, path)
+
+
+
+	return send_from_directory(file_path, name)
+
 
 
 if __name__ == '__main__':

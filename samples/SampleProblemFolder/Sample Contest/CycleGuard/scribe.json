@@ -1,0 +1,13 @@
+{
+	"tags": [
+		"hashmap",
+		"queries",
+		"updates"
+	],
+	"difficulty": 3,
+	"status": "Done",
+	"hasGen": true,
+	"description": "https://github.com/UCD-193AB-ws24/CycleGuardFrontend",
+	"creation": "2025-04-17",
+	"link": "https://www.hackerrank.com/contests/scpe-spring-2025/challenges/scpe-cycleguard"
+}

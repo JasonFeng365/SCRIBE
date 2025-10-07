@@ -1,0 +1,13 @@
+{
+	"tags": [
+		"geometry",
+		"math",
+		"euclidean distance"
+	],
+	"difficulty": 2,
+	"status": "Done",
+	"hasGen": true,
+	"description": "Determine if each pair of circles overlap at some point(s).",
+	"creation": "2025-04-17",
+	"link": "https://www.hackerrank.com/contests/scpe-spring-2025/challenges/scpe-circle-intersection"
+}

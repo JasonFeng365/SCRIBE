@@ -239,28 +239,28 @@
 		<button 
 			class="btn me-2"
 			:class="sortBy === 'path' ? 'btn-primary' : 'btn-outline-primary'"
-			@click="sortBy = 'path'; sortAsc = true"
+			@click="setSortBy('path')"
 		>
 			Sort by Path
 		</button>
 		<button 
 			class="btn me-2"
 			:class="sortBy === 'name' ? 'btn-primary' : 'btn-outline-primary'"
-			@click="sortBy = 'name'; sortAsc = true"
+			@click="setSortBy('name')"
 		>
 			Sort by Name
 		</button>
 		<button 
 			class="btn me-2"
 			:class="sortBy === 'difficulty' ? 'btn-primary' : 'btn-outline-primary'"
-			@click="sortBy = 'difficulty'; sortAsc = true"
+			@click="setSortBy('difficulty')"
 		>
 			Sort by Difficulty
 		</button>
 		<button 
 			class="btn me-2"
 			:class="sortBy === 'creation' ? 'btn-primary' : 'btn-outline-primary'"
-			@click="sortBy = 'creation'; sortAsc = true"
+			@click="setSortBy('creation')"
 		>
 			Sort by Creation
 		</button>
@@ -296,7 +296,8 @@
 					</div>
 					<div class="mb-2">
 						<label class="form-label">Description:</label>
-						<textarea style="field-sizing: content;" class="form-control" @click="lastActive = item" v-model="item.description" @input="item.hasUnsavedChanges = true"></textarea>
+						<textarea style="field-sizing: content;" class="form-control" @click="lastActive = item" 
+							v-model="item.description" @input="item.hasUnsavedChanges = true" @change="item.description = item.description.trim()"></textarea>
 					</div>
 					
 					<label class="form-label">Link:</label>

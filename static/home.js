@@ -37,6 +37,14 @@ const vue = createApp({
 		}
 	},
 	methods: {
+		setSortBy(param) {
+			if (this.sortBy == param) {
+				this.sortAsc = !this.sortAsc
+			} else {
+				this.sortBy = param;
+				this.sortAsc = true
+			}
+		},
 		openLink(link) {
 			window.open(link, '_blank')
 		},
@@ -108,6 +116,7 @@ const vue = createApp({
 		},
 		saveChanges(item) {
 			this.setItemTags(item)
+			this.item.description = this.item.description.trim()
 
 			fetch(`/save/${item.path}`, {
 				method: 'POST',

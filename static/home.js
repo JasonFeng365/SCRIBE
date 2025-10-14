@@ -116,7 +116,7 @@ const vue = createApp({
 		},
 		saveChanges(item) {
 			this.setItemTags(item)
-			this.item.description = this.item.description.trim()
+			item.description = item.description.trim()
 
 			fetch(`/save/${item.path}`, {
 				method: 'POST',

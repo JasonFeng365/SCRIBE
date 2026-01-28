@@ -232,7 +232,14 @@ def getPdf(problem_path):
 	return send_from_directory(file_path, name)
 
 
-
+import webbrowser
 if __name__ == '__main__':
-	print("http://localhost:212/home")
+	url = "http://localhost:212/home"
+	print(url)
+	
+	print("Opening in browser...")
+	webbrowser.open_new_tab(url)
+	print("Opened in browser!")
+	
 	app.run(debug=True, port=212)
+

@@ -332,6 +332,12 @@ const vue = createApp({
 		openStatement(item) {
 			console.log(item.path)
 			this.openLink("statement/"+item.path)
+		},
+
+		closeAll() {
+			for (item of this.items) {
+				item.expanded = false;
+			}
 		}
 	},
 	mounted() {

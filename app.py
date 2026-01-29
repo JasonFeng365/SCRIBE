@@ -237,9 +237,5 @@ if __name__ == '__main__':
 	url = "http://localhost:212/home"
 	print(url)
 	
-	print("Opening in browser...")
-	webbrowser.open_new_tab(url)
-	print("Opened in browser!")
-	
 	app.run(debug=True, port=212)
 
